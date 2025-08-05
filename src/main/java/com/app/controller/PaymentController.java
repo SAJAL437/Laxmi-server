@@ -32,7 +32,7 @@ import com.razorpay.RazorpayException;
 
 @RestController
 @RequestMapping("/api/users/payments")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class PaymentController {
 
     @Value("${razorpay.api.key}")
@@ -40,6 +40,9 @@ public class PaymentController {
 
     @Value("${razorpay.api.secret}")
     String apiSecretKey;
+
+    @Value("${payment.callback.url}")
+    private String callbackUrl;
 
     private final OrderService orderService;
     private final UserServices userService;
@@ -90,7 +93,7 @@ public class PaymentController {
             paymentLinkRequest.put("notify", notify);
 
             paymentLinkRequest.put("reminder_enable", true);
-            paymentLinkRequest.put("callback_url", "http://localhost:5173/payment/" + orderId);
+            paymentLinkRequest.put("callback_url", callbackUrl + "/payment/" + orderId);
             paymentLinkRequest.put("callback_method", "get");
 
             PaymentLink payment = client.paymentLink.create(paymentLinkRequest);
@@ -143,16 +146,7 @@ public class PaymentController {
                 orderRepo.save(order);
                 System.out.println("Order updated: status=PLACED, paymentId=" + paymentId);
 
-                // Temporarily comment out cart clearing to isolate issue
-                /*
-                 * try {
-                 * cartService.clearCart(order.getUser().getId());
-                 * System.out.println("Cart cleared for user ID: " + order.getUser().getId());
-                 * } catch (UserException e) {
-                 * System.err.println("Failed to clear cart for user ID: " +
-                 * order.getUser().getId() + ", error: " + e.getMessage());
-                 * }
-                 */
+            
 
                 ApiResponse res = new ApiResponse();
                 res.setStatus(true);
