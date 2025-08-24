@@ -21,7 +21,7 @@ import com.app.service.OrderService;
 @RequestMapping("/api/admin/orders")
 public class OrderController {
 
-    private OrderService orderService;
+    private final OrderService orderService;
 
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
@@ -29,31 +29,43 @@ public class OrderController {
 
     @GetMapping("/")
     public ResponseEntity<List<Order>> getAllOrder() {
-
         List<Order> orders = orderService.getAllOrders();
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
 
-        return new ResponseEntity<>(orders, HttpStatus.ACCEPTED);
+    @PutMapping("/{orderId}/place")
+    public ResponseEntity<Order> placedOrderHandler(@PathVariable String orderId,
+            @RequestHeader("Authorization") String jwt) throws OrderException {
+        Order order = orderService.placedOrder(orderId);
+        return new ResponseEntity<>(order, HttpStatus.OK);
+    }
+
+    @PutMapping("/{orderId}/confirm")
+    public ResponseEntity<Order> confirmedOrderHandler(@PathVariable String orderId,
+            @RequestHeader("Authorization") String jwt) throws OrderException {
+        Order order = orderService.confirmedOrder(orderId);
+        return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
     @PutMapping("/{orderId}/ship")
     public ResponseEntity<Order> shippedOrderHandler(@PathVariable String orderId,
             @RequestHeader("Authorization") String jwt) throws OrderException {
         Order order = orderService.shippedOrder(orderId);
-        return new ResponseEntity<Order>(order, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
     @PutMapping("/{orderId}/deliver")
     public ResponseEntity<Order> deliveredOrderHandler(@PathVariable String orderId,
             @RequestHeader("Authorization") String jwt) throws OrderException {
         Order order = orderService.deliveredOrder(orderId);
-        return new ResponseEntity<Order>(order, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
     @PutMapping("/{orderId}/cancel")
     public ResponseEntity<Order> canceledOrderHandler(@PathVariable String orderId,
             @RequestHeader("Authorization") String jwt) throws OrderException {
-        Order order = orderService.cancledOrder(orderId);
-        return new ResponseEntity<Order>(order, HttpStatus.ACCEPTED);
+        Order order = orderService.cancelledOrder(orderId); // Fixed typo
+        return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
     @DeleteMapping("/{orderId}/delete")
@@ -61,8 +73,6 @@ public class OrderController {
             @RequestHeader("Authorization") String jwt) throws OrderException {
         orderService.deleteOrder(orderId);
         ApiResponse res = new ApiResponse("Order Deleted Successfully", true);
-        System.out.println("delete method working....");
-        return new ResponseEntity<>(res, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
-
 }

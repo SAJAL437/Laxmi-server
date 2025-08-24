@@ -42,11 +42,12 @@ public class AdminDataSeeder {
                     .id(UUID.randomUUID().toString())
                     .name("Admin")
                     .email("admin@site.com")
+                    .phone("+91 9452889524")
                     .password(passwordEncoder.encode("admin123"))
                     .roles(Set.of(adminRole))
                     .isEmailVerified(true)
                     .isPhoneVerified(true)
-                    .isSeller(false)
+                    .isSeller(true)
                     .createdAt(LocalDateTime.now())
                     .build();
 

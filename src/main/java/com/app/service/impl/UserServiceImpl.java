@@ -2,11 +2,14 @@ package com.app.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -205,5 +208,17 @@ public class UserServiceImpl implements UserServices {
         }
         System.out.println("✅ OTP sent to " + contact + ": " + otp);
 
+    }
+
+    @Override
+    public List<User> findAllUser() throws UserException {
+        return userRepo.findAll();
+    }
+
+    @Override
+    public Page<User> getAllUsersWithUserRole(Pageable pageable) throws UserException {
+        Role userRole = roleRepo.findByName(ERole.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("Role ROLE_USER not found"));
+        return userRepo.findByRoles(userRole, pageable);
     }
 }

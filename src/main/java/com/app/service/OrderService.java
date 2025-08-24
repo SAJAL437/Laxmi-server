@@ -23,7 +23,7 @@ public interface OrderService {
 
     public Order deliveredOrder(String orderId) throws OrderException;
 
-    public Order cancledOrder(String orderId) throws OrderException;
+    public Order cancelledOrder(String orderId) throws OrderException;
 
     public List<Order> getAllOrders();
 

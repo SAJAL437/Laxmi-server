@@ -124,17 +124,22 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order placedOrder(String orderId) throws OrderException {
         Order order = findOrderById(orderId);
-        order.setOrderStatus(OrderStatus.PLACED);
+        if (order.getOrderStatus() != null && !order.getOrderStatus().equals(OrderStatus.PENDING)) {
+            throw new OrderException("Order cannot be placed from current status: " + order.getOrderStatus());
+        }
+        order.setOrderStatus(OrderStatus.PENDING);
         order.getPaymentDetails().setStatus(PaymentStatus.COMPLETED);
-        return order;
+        return orderRepo.save(order);
     }
 
     @Override
     public Order confirmedOrder(String orderId) throws OrderException {
         Order order = findOrderById(orderId);
+        if (!order.getOrderStatus().equals(OrderStatus.PENDING)) {
+            throw new OrderException("Order cannot be confirmed from current status: " + order.getOrderStatus());
+        }
         order.setOrderStatus(OrderStatus.CONFIRMED);
         order.getPaymentDetails().setPaymentMethod(PaymentMethod.CASH_ON_DELIVERY);
-
         order.getPaymentDetails().setStatus(PaymentStatus.COMPLETED);
         Order savedOrder = orderRepo.save(order);
 
@@ -142,7 +147,6 @@ public class OrderServiceImpl implements OrderService {
         try {
             cartService.clearCart(order.getUser().getId());
         } catch (UserException e) {
-            // Log error but don’t fail order confirmation
             System.err.println(
                     "Failed to clear cart for user ID: " + order.getUser().getId() + ", error: " + e.getMessage());
         }
@@ -153,24 +157,33 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order shippedOrder(String orderId) throws OrderException {
         Order order = findOrderById(orderId);
+        if (!order.getOrderStatus().equals(OrderStatus.CONFIRMED)) {
+            throw new OrderException("Order cannot be shipped from current status: " + order.getOrderStatus());
+        }
         order.setOrderStatus(OrderStatus.SHIPPED);
+        order.setDeliveryDate(LocalDate.now().plusDays(6));
         return orderRepo.save(order);
     }
 
     @Override
     public Order deliveredOrder(String orderId) throws OrderException {
         Order order = findOrderById(orderId);
+        if (!order.getOrderStatus().equals(OrderStatus.SHIPPED)) {
+            throw new OrderException("Order cannot be delivered from current status: " + order.getOrderStatus());
+        }
         order.setOrderStatus(OrderStatus.DELIVERED);
         return orderRepo.save(order);
     }
 
     @Override
-    public Order cancledOrder(String orderId) throws OrderException {
+    public Order cancelledOrder(String orderId) throws OrderException { // Fixed typo
         Order order = findOrderById(orderId);
+        if (order.getOrderStatus().equals(OrderStatus.DELIVERED)) {
+            throw new OrderException("Delivered order cannot be cancelled");
+        }
         order.setOrderStatus(OrderStatus.CANCELLED);
         return orderRepo.save(order);
     }
-
 
     @Override
     public List<Order> getAllOrders() {
